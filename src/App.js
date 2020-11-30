@@ -1,25 +1,127 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from "react";
+import firebase from "firebase";
+import { config } from "./firebase/config";
+import Carouselitem from "./component/ContentCarousel";
+import { Carousel, Jumbotron, Button, Table } from "react-bootstrap";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "./css/app.css";
+import ContentDisplay from "./component/ContentDisplay";
+import Management from "./component/Management";
+import Loading from './component/Loading'
+const App = () => {
+  const [content, setcontent] = useState([]);
+  const [show, setshow] = useState(false);
+  React.useEffect(() => {
+    !firebase.apps.length ? firebase.initializeApp(config) : firebase.app();
+    query();
+  }, []);
 
-function App() {
+  const query = () => {
+    const userRef = firebase.database().ref("history");
+    let newQuery = [];
+    userRef.on("value", (snapshot) => {
+      snapshot.forEach((data) => {
+        const dataVal = data.val();
+        const userRef2 = firebase.database().ref(`plants`).child(dataVal.code);
+        let newQuery2 = [];
+        userRef2.on("value", (snapshot2) => {
+          snapshot2.forEach((data2) => {
+            const dataVal2 = data2.val();
+            newQuery2.push({
+              id: data2.key,
+              name: dataVal2,
+            });
+          });
+        });
+        // console.log(newQuery2)
+        newQuery.push({
+          id: data.key,
+          code: dataVal.code,
+          name: newQuery2[0].name,
+          date: dataVal.date,
+          detail: dataVal.detail,
+        });
+      });
+      // console.log(newQuery)
+      setcontent(newQuery);
+    });
+
+    // console.log(content)
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
+    <Jumbotron>
+      {/* {AppCarousel(content)} */}
+      <Management show={show} setshow={setshow} firebase={firebase} />
+      <div className="py-5 mt-5">
+        <h2 className="float-left">แปลงผัก</h2>
+        <Button
+          variant="outline-success"
+          className="float-right"
+          onClick={() => setshow(true)}
         >
-          Learn React
-        </a>
-      </header>
-    </div>
+          Add
+        </Button>
+        <hr className="bg-dark mt-5" />
+      </div>
+      {!content || content.length === 0 ? (
+        <Loading />
+      ) : (
+        <Table striped bordered hover variant="dark">
+          <thead>
+            <tr>
+              <th>วันที่</th>
+              <th>รหัสพืช</th>
+              <th>ชื่อพืช</th>
+              <th>รายละเอียด</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {content && content.map(({code, name, date, detail, index}) => (
+            <ContentDisplay
+              key={index}
+              date={date}
+              code={code}
+              name={name}
+              detail={detail}
+            />
+            ))}
+          </tbody>
+        </Table>
+      )}
+    </Jumbotron>
   );
-}
+};
 
 export default App;
+
+const AppCarousel = (content) => {
+  const [indControlledCarousel, setindControlledCarousel] = useState(0);
+  const handleSelectControlledCarousel = (selectedIndex, e) => {
+    setindControlledCarousel(selectedIndex);
+  };
+  return (
+    <div className="invisible">
+      <Carousel
+        activeIndex={indControlledCarousel}
+        onSelect={handleSelectControlledCarousel}
+        fade={true}
+      >
+        {content &&
+          content.map(({ id, code, name, date, detail }) => (
+            <Carouselitem
+              key={id}
+              id={id}
+              code={code}
+              name={name}
+              date={date}
+              detail={detail}
+            />
+          ))}
+      </Carousel>
+    </div>
+  );
+};
+
+
