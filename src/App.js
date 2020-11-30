@@ -53,7 +53,7 @@ const App = () => {
     <Jumbotron>
       {/* {AppCarousel(content)} */}
       <Management show={show} setshow={setshow} firebase={firebase} />
-      <div className="py-5 mt-5">
+      <div className="py-5 ">
         <h2 className="float-left">แปลงผัก</h2>
         <Button
           variant="outline-success"
@@ -78,13 +78,15 @@ const App = () => {
             </tr>
           </thead>
           <tbody>
-            {content && content.map(({code, name, date, detail, index}) => (
+            {content && content.map(({code, name, date, detail, id}) => (
             <ContentDisplay
-              key={index}
+              key={id}
+              id={id}
               date={date}
               code={code}
               name={name}
               detail={detail}
+              firebase={firebase}
             />
             ))}
           </tbody>
