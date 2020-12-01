@@ -11,35 +11,36 @@ import Loading from './component/Loading'
 const App = () => {
   const [content, setcontent] = useState([]);
   const [show, setshow] = useState(false);
+  const [displayAll, setdisplayAll] = useState(false);
+
   React.useEffect(() => {
     !firebase.apps.length ? firebase.initializeApp(config) : firebase.app();
-    query();
-  }, []);
+    query()
+  },[]);
 
-  const query = () => {
-    const userRef = firebase.database().ref("history");
+  const query = async () => {
+    setcontent(null)
+     const userRef = firebase.database().ref("history");
     let newQuery = [];
-    userRef.on("value", (snapshot) => {
+    await userRef.on("value", (snapshot) => {
       snapshot.forEach((data) => {
         const dataVal = data.val();
         const userRef2 = firebase.database().ref(`plants`).child(dataVal.code);
         let newQuery2 = [];
+        let name = "";
         userRef2.on("value", (snapshot2) => {
           snapshot2.forEach((data2) => {
-            const dataVal2 = data2.val();
-            newQuery2.push({
-              id: data2.key,
-              name: dataVal2,
-            });
+            name= data2.val();
           });
         });
         // console.log(newQuery2)
         newQuery.push({
           id: data.key,
           code: dataVal.code,
-          name: newQuery2[0].name,
+          name: name,
           date: dataVal.date,
           detail: dataVal.detail,
+          status: dataVal.status,
         });
       });
       // console.log(newQuery)
@@ -52,15 +53,23 @@ const App = () => {
   return (
     <Jumbotron>
       {/* {AppCarousel(content)} */}
-      <Management show={show} setshow={setshow} firebase={firebase} />
+      <Management show={show} setshow={setshow} firebase={firebase} query={query}/>
       <div className="py-5 ">
         <h2 className="float-left">แปลงผัก</h2>
+        
         <Button
           variant="outline-success"
           className="float-right"
-          onClick={() => setshow(true)}
+          onClick={() => {setshow(true); query()}}
         >
           Add
+        </Button>
+        <Button
+          variant="outline-info"
+          className="float-right"
+          onClick={() => {setdisplayAll(prev => !prev);}}
+        >
+          {!displayAll ? "show All" : " Close"}
         </Button>
         <hr className="bg-dark mt-5" />
       </div>
@@ -78,7 +87,7 @@ const App = () => {
             </tr>
           </thead>
           <tbody>
-            {content && content.map(({code, name, date, detail, id}) => (
+            {content && content.map(({code, name, date, detail, id,status}) => (
             <ContentDisplay
               key={id}
               id={id}
@@ -87,6 +96,9 @@ const App = () => {
               name={name}
               detail={detail}
               firebase={firebase}
+              query={query}
+              status={status}
+              displayAll={displayAll}
             />
             ))}
           </tbody>
