@@ -20,13 +20,12 @@ const App = () => {
 
   const query = async () => {
     setcontent(null)
-     const userRef = firebase.database().ref("history");
+     const userRef = firebase.database().ref("history").orderByChild('status');
     let newQuery = [];
     await userRef.on("value", (snapshot) => {
       snapshot.forEach((data) => {
         const dataVal = data.val();
         const userRef2 = firebase.database().ref(`plants`).child(dataVal.code);
-        let newQuery2 = [];
         let name = "";
         userRef2.on("value", (snapshot2) => {
           snapshot2.forEach((data2) => {
@@ -54,7 +53,7 @@ const App = () => {
     <Jumbotron>
       {/* {AppCarousel(content)} */}
       <Management show={show} setshow={setshow} firebase={firebase} query={query}/>
-      <div className="py-5 ">
+
         <h2 className="float-left">แปลงผัก</h2>
         
         <Button
@@ -66,13 +65,12 @@ const App = () => {
         </Button>
         <Button
           variant="outline-info"
-          className="float-right"
+          className="float-right mr-2"
           onClick={() => {setdisplayAll(prev => !prev);}}
         >
           {!displayAll ? "show All" : " Close"}
         </Button>
         <hr className="bg-dark mt-5" />
-      </div>
       {!content || content.length === 0 ? (
         <Loading />
       ) : (
