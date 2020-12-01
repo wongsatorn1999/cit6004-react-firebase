@@ -1,4 +1,8 @@
 # Getting Started with Create React App
+npx create-react-app name
+npm install react-bootstrap bootstrap
+npm i firebase
+npm i moment
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
